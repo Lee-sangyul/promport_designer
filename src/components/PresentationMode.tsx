@@ -158,12 +158,12 @@ export default function PresentationMode({ onClose }: PresentationModeProps) {
       )
     },
     {
-      title: '철저한 보안 검진 & 레드팀 시뮬레이션',
-      subtitle: 'Real-time Security Guardrail & Jailbreak Defense',
+      title: '철저한 보안 검진 & 제미나이 AI 종합 심사 (의무)',
+      subtitle: 'Gemini AI Comprehensive Safety Audit & Guardrails',
       content: (
         <div className="space-y-4">
-          <p className="text-center text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">
-            안전하지 않은 기술은 사용할 수 없습니다. 프롬프트 인젝션(지시 무시 공격), 개인정보(PII) 누출 우려 등을 설계 즉시 검출하여 원천적으로 차단합니다.
+          <p className="text-center text-slate-500 dark:text-slate-400 text-sm max-w-xl mx-auto">
+            안전하고 신뢰할 수 있는 최적의 프롬프트를 보장합니다. 실시간 위협 스캐너와 함께, 최종 발급 직전 <strong>구글 제미나이 AI가 프롬프트의 품질과 보안 위해 요소를 스캔하는 종합 보안 심사가 의무 적용</strong>되었습니다.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
@@ -171,33 +171,37 @@ export default function PresentationMode({ onClose }: PresentationModeProps) {
               <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center mb-1">
                 <Lock size={14} />
               </div>
-              <h4 className="text-xs font-bold text-slate-800 dark:text-white">개인정보 보호</h4>
-              <p className="text-[10px] text-slate-400 leading-normal">이메일, 휴대폰 번호, 주민등록번호 양식 등 기밀 정보 실시간 제거 및 필터링</p>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white">개인정보 & 민감데이터 필터</h4>
+              <p className="text-[10px] text-slate-400 leading-normal">이메일, 연락처, 개인정보 유도 양식 등을 사전에 자동 스캔하여 차단 및 대체 제안</p>
+            </div>
+
+            <div className="p-4 bg-blue-500/5 dark:bg-blue-500/10 rounded-2xl border border-blue-200 dark:border-blue-900/30 space-y-1.5">
+              <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center mb-1 animate-pulse">
+                <ShieldCheck size={14} />
+              </div>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1">
+                제미나이 AI 보안 심사
+                <span className="bg-blue-600 text-white text-[8px] font-extrabold px-1 py-0.2 rounded">필수</span>
+              </h4>
+              <p className="text-[10px] text-slate-400 leading-normal">제미나이 인공지능 감사관이 탈옥(Jailbreak), 악성 우회 지시, 유해성을 면밀히 분석해 안전 등급 발급</p>
             </div>
 
             <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
               <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mb-1">
                 <ShieldAlert size={14} />
               </div>
-              <h4 className="text-xs font-bold text-slate-800 dark:text-white">프롬프트 인젝션 방어</h4>
-              <p className="text-[10px] text-slate-400 leading-normal">"앞선 모든 지시를 잊어라"와 같은 우회(탈옥) 공격 공격 시도를 탐지하여 점수화</p>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
-              <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center mb-1">
-                <ShieldCheck size={14} />
-              </div>
-              <h4 className="text-xs font-bold text-slate-800 dark:text-white">조립 잠금 메커니즘</h4>
-              <p className="text-[10px] text-slate-400 leading-normal">안전 가이드라인을 심각하게 위배한 프롬프트는 최종 복사 및 다운로드를 원천 락업</p>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white">다음 단계 잠금 장치 (Lock)</h4>
+              <p className="text-[10px] text-slate-400 leading-normal">안전 등급 '통과'를 받지 못하거나 중간에 프롬프트를 무단 수정한 경우 다음 단계 이동이 엄격히 통제됨</p>
             </div>
           </div>
 
-          <div className="p-4 bg-red-500/5 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-950/30 flex items-start gap-3">
-            <ShieldAlert size={18} className="text-red-500 shrink-0 mt-0.5" />
+          <div className="p-4 bg-blue-500/5 dark:bg-blue-500/10 rounded-2xl border border-blue-100/30 dark:border-blue-950/40 flex items-start gap-3">
+            <ShieldCheck size={18} className="text-blue-500 shrink-0 mt-0.5" />
             <div>
-              <h5 className="text-xs font-bold text-red-800 dark:text-red-400">🚨 보안 위반 프롬프트 복사 차단 정책</h5>
+              <h5 className="text-xs font-bold text-slate-900 dark:text-slate-200">🛡️ 구글 제미나이 심사 실패 및 우회 안내</h5>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
-                본 시스템은 안전한 AI 생태계를 추구합니다. 위험 분석 결과가 'blocked'이거나 'warning' 수준인 위협성 프롬프트는 8단계(수령 및 서약) 및 보관함에서 **복사 및 저장이 전면 차단**됩니다. 위험 사유를 확인해 텍스트를 순화하여 이용하세요.
+                지시어에 인젝션 위험 등이 탐지되어 차단된 경우, 수정 후 다시 제미나이 AI 심사를 받으십시오. 
+                Gemini 서버 일시 과부하(503/429) 등으로 API 통신이 지연될 경우, 시스템에 장착된 <strong>'내장형 로컬 실시간 진단 엔진'으로 즉시 우회 대체 승인</strong>을 획득할 수 있도록 이중 안전망이 갖춰져 있습니다.
               </p>
             </div>
           </div>
