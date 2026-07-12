@@ -14,7 +14,7 @@ import {
   analyzeSafety, analyzePrivacy, calculateStats, calculateQualityScore,
   generatePromptString, detectConflicts
 } from './utils/safety';
-import { polishPrompt, getCustomApiKey, setCustomApiKey } from './utils/geminiClient';
+import { polishPrompt, getCustomApiKey, setCustomApiKey, auditPrompt, AuditResult } from './utils/geminiClient';
 
 import HelpManual from './components/HelpManual';
 import SavedPrompts from './components/SavedPrompts';
@@ -69,6 +69,12 @@ export default function App() {
   const [usePolished, setUsePolished] = useState(false);
   const [isPolishing, setIsPolishing] = useState(false);
   const [polishError, setPolishError] = useState('');
+
+  // Gemini Safety Audit States (Mandatory Step 7 Audit)
+  const [aiAuditResult, setAiAuditResult] = useState<AuditResult | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditError, setAuditError] = useState('');
+  const [auditedPromptText, setAuditedPromptText] = useState('');
 
   // Custom API Key Modal States
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -310,6 +316,22 @@ export default function App() {
     setCurrentStep(0);
   };
 
+  const handleAuditPrompt = async () => {
+    setIsAuditing(true);
+    setAuditError('');
+    setAiAuditResult(null);
+    try {
+      const result = await auditPrompt(compiledPrompt);
+      setAiAuditResult(result);
+      setAuditedPromptText(compiledPrompt);
+    } catch (err: any) {
+      console.error(err);
+      setAuditError(err.message || '네트워크 오류가 발생했습니다.');
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
   // Log Improvement entries
   const handleSaveImprovementLog = (log: LogItem, pre: number, post: number) => {
     handleUpdateField('improvementLog', log);
@@ -349,9 +371,9 @@ export default function App() {
   // --- COMPILER & DIAGNOSTIC VALUES ---
   const rawCompiledPrompt = generatePromptString(promptData);
   const compiledPrompt = (usePolished && promptData.polishedText) ? promptData.polishedText : rawCompiledPrompt;
-  const isDangerous = promptData.safetyResult?.status === 'blocked' || promptData.safetyResult?.status === 'warning';
+  const isDangerous = promptData.safetyResult?.status === 'blocked' || promptData.safetyResult?.status === 'warning' || (aiAuditResult !== null && aiAuditResult.isSafe === false);
   const displayCompiledPrompt = isDangerous
-    ? `⚠️ [안전 가드라인 위배 - 복사 및 다운로드 제한]\n\n이 프롬프트에는 해킹, 개인정보 침해, 부정행위 또는 시스템 우회(탈옥) 등 사이버 안전 규정을 위배할 가능성이 높은 위험 요인이 포함되어 있어 최종 조립이 잠금 처리되었습니다.\n\n[감지된 위험 유형]: ${promptData.safetyResult?.detections.map(d => d.category).join(', ') || '없음'}\n[위험 키워드]: ${promptData.safetyResult?.detections.map(d => d.keyword).join(', ') || '없음'}\n\n7단계(보안 검진)로 돌아가 위험 요소를 정당하고 유익한 질의 목적의 정상적 텍스트로 수정한 뒤 진행하세요.`
+    ? `⚠️ [안전 가드라인 위배 - 복사 및 다운로드 제한]\n\n이 프롬프트에는 해킹, 개인정보 침해, 부정행위 또는 시스템 우회(탈옥) 등 사이버 안전 규정을 위배할 가능성이 높은 위험 요인이 포함되어 있어 최종 조립이 잠금 처리되었습니다.\n\n[구글 제미나이 AI 정밀진단 피드백]:\n${aiAuditResult && !aiAuditResult.isSafe ? aiAuditResult.commentary : (promptData.safetyResult?.detections.map(d => d.reason).join('\n') || '안전 필터에 위배되는 지시어가 발견되었습니다.')}\n\n7단계(보안 검진)로 돌아가 제미나이 AI 종합 보안 심사를 다시 받아 통과 승인을 획득해 주세요.`
     : compiledPrompt;
   const stats = calculateStats(displayCompiledPrompt);
   const activeConflicts = detectConflicts(promptData);
@@ -1233,6 +1255,129 @@ export default function App() {
                         </div>
                       </div>
 
+                      {/* Gemini AI Comprehensive Safety Audit Panel */}
+                      <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
+                        <div className="flex items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-blue-500/20 rounded-2xl text-blue-400 animate-pulse">
+                              <ShieldCheck size={24} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-base text-white">Gemini AI 프롬프트 종합 보안 심사</h3>
+                                <span className="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded border border-red-500/30">의무 단계</span>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-0.5">최종 수령 단계로 가기 전, 구글 제미나이 AI가 프롬프트의 안전성과 완성도를 최종 승인해야 합니다.</p>
+                            </div>
+                          </div>
+                          
+                          {aiAuditResult && auditedPromptText === compiledPrompt && (
+                            <span className={`text-xs font-bold px-3 py-1 rounded-xl border ${
+                              aiAuditResult.isSafe 
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                                : 'bg-red-500/10 text-red-400 border-red-500/20'
+                            }`}>
+                              {aiAuditResult.safetyLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Status Message / Audit Result */}
+                        {isAuditing ? (
+                          <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                            <Loader2 className="animate-spin text-blue-500" size={36} />
+                            <p className="text-xs text-slate-300 font-bold">제미나이가 조립된 프롬프트를 한 줄 한 줄 보안 심사 중입니다...</p>
+                          </div>
+                        ) : auditError ? (
+                          <div className="p-4 bg-red-950/40 border border-red-900/50 rounded-2xl text-xs text-red-400 flex items-start gap-3">
+                            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                            <div>
+                              <span className="font-bold">심사 실행 에러 발생</span>
+                              <p className="mt-1 text-slate-450">{auditError}</p>
+                              <button 
+                                onClick={handleAuditPrompt}
+                                className="mt-2.5 bg-blue-650 hover:bg-blue-750 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer"
+                              >
+                                다시 시도하기
+                              </button>
+                            </div>
+                          </div>
+                        ) : aiAuditResult ? (
+                          <div className="space-y-4">
+                            {/* Audited Text Is Stale? */}
+                            {auditedPromptText !== compiledPrompt && (
+                              <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-400 text-xs flex items-center gap-2">
+                                <AlertTriangle size={15} />
+                                <span>프롬프트 내용이 변경되었습니다! 최신 내용으로 **다시 심사받아야** 다음 단계 이동이 잠금 해제됩니다.</span>
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                              {/* Left score & status */}
+                              <div className="md:col-span-4 bg-slate-950/60 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-center text-center space-y-2">
+                                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">보안 및 완성도 점수</span>
+                                <div className="text-4xl font-black text-white">{aiAuditResult.score}점</div>
+                                <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${
+                                  aiAuditResult.isSafe 
+                                    ? 'bg-emerald-500/20 text-emerald-400' 
+                                    : 'bg-red-500/20 text-red-400'
+                                }`}>
+                                  {aiAuditResult.isSafe ? '🛡️ 최종 승인됨 (Safe)' : '❌ 보안 부적합 (Block)'}
+                                </span>
+                              </div>
+
+                              {/* Right commentary */}
+                              <div className="md:col-span-8 bg-slate-950/30 rounded-2xl p-4 border border-slate-850 space-y-2">
+                                <span className="text-[10px] text-slate-500 font-bold">감사원 종합 심사평</span>
+                                <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">{aiAuditResult.commentary}</p>
+                              </div>
+                            </div>
+
+                            {!aiAuditResult.isSafe && (
+                              <div className="p-4 bg-red-950/40 border border-red-900/50 rounded-2xl text-xs text-red-400 space-y-1.5">
+                                <h4 className="font-bold flex items-center gap-1.5">
+                                  <XCircle size={14} className="text-red-400" />
+                                  보안 및 구조상 위험 감지!
+                                </h4>
+                                <p className="text-[11px] leading-relaxed text-slate-300">
+                                  이 프롬프트는 안전 규정에 부적합하거나 보안 공격(탈옥, 악용)의 위험성이 감지되어 발급이 중단되었습니다.
+                                  지시 내용에서 악용 소지가 있는 항목을 수정한 뒤 아래 버튼을 눌러 다시 심사를 받으십시오.
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="flex justify-end">
+                              <button
+                                onClick={handleAuditPrompt}
+                                className="bg-slate-850 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5"
+                              >
+                                <RotateCw size={12} />
+                                재심사 진행하기
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-slate-950/40 rounded-2xl p-6 border border-slate-850 flex flex-col items-center text-center space-y-4">
+                            <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400">
+                              <ShieldCheck size={24} />
+                            </div>
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-bold text-slate-200">심사가 대기 중입니다</h4>
+                              <p className="text-xs text-slate-400 max-w-md leading-normal">
+                                작성한 프롬프트의 불법/탈옥/악용 시도 여부 및 지시의 구체성을 구글 제미나이 인공지능이 일체 스캔하여 종합 안전 도장을 수여합니다.
+                              </p>
+                            </div>
+                            <button
+                              onClick={handleAuditPrompt}
+                              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-5 py-2.5 rounded-2xl text-xs shadow-md transition-all cursor-pointer flex items-center gap-2"
+                            >
+                              <ShieldCheck size={14} />
+                              제미나이 AI 종합 보안 심사 시작 (필수)
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
                       {/* Conflict and Vague suggestions optimizer embed */}
                       <PromptOptimizer
                         promptData={promptData}
@@ -1517,23 +1662,46 @@ export default function App() {
                 )}
 
                 {/* Bottom Step navigation buttons */}
-                <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-850 pt-5 mt-6">
-                  <button
-                    onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
-                    disabled={currentStep === 0}
-                    className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft size={14} />
-                    이전 단계
-                  </button>
-                  <button
-                    onClick={() => setCurrentStep(prev => Math.min(stepsList.length - 1, prev + 1))}
-                    disabled={currentStep === stepsList.length - 1}
-                    className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    다음 단계
-                    <ChevronRight size={14} />
-                  </button>
+                <div className="flex flex-col space-y-2 mt-6 border-t border-slate-100 dark:border-slate-850 pt-5">
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+                      disabled={currentStep === 0}
+                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft size={14} />
+                      이전 단계
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (currentStep === 6) {
+                          const isPassed = aiAuditResult && aiAuditResult.isSafe && auditedPromptText === compiledPrompt;
+                          if (!isPassed) {
+                            alert('제미나이 AI 종합 보안 심사를 무사히 통과해야 다음 단계로 진행할 수 있습니다. 먼저 보안 심사를 진행해 주세요!');
+                            return;
+                          }
+                        }
+                        setCurrentStep(prev => Math.min(stepsList.length - 1, prev + 1));
+                      }}
+                      disabled={
+                        currentStep === stepsList.length - 1 ||
+                        (currentStep === 6 && !(aiAuditResult && aiAuditResult.isSafe && auditedPromptText === compiledPrompt))
+                      }
+                      className={`flex items-center gap-1.5 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                        currentStep === 6 && !(aiAuditResult && aiAuditResult.isSafe && auditedPromptText === compiledPrompt)
+                          ? 'bg-slate-200 text-slate-400 dark:bg-slate-850 dark:text-slate-600'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
+                    >
+                      다음 단계
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                  {currentStep === 6 && !(aiAuditResult && aiAuditResult.isSafe && auditedPromptText === compiledPrompt) && (
+                    <p className="text-[10px] text-red-500 font-bold text-right">
+                      ⚠️ 제미나이 AI 종합 보안 심사를 수행하고 '통과' 등급을 획득해야 다음 단계로 이동 가능합니다 (의무).
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
