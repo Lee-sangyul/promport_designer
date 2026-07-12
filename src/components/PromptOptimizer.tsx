@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Play, HelpCircle, Check, AlertTriangle, ShieldCheck, List, Layout, Terminal, Cpu, AlertCircle, Loader2 } from 'lucide-react';
 import { PromptData, ConflictWarning } from '../types';
 import { detectConflicts, calculateQualityScore, analyzeSafety, generatePromptString } from '../utils/safety';
+import { generateContent } from '../utils/geminiClient';
 
 interface PromptOptimizerProps {
   promptData: PromptData;
@@ -28,23 +29,8 @@ export default function PromptOptimizer({ promptData, onUpdateField, onAddInclud
     
     try {
       const fullPrompt = generatePromptString(promptData);
-      const res = await fetch('/api/gemini/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: fullPrompt,
-          userInput: testInput,
-        }),
-      });
-      
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'API 호출에 실패했습니다.');
-      }
-      
-      setRealResult(data.text || '답변이 비어 있습니다.');
+      const text = await generateContent(fullPrompt, testInput);
+      setRealResult(text || '답변이 비어 있습니다.');
     } catch (err: any) {
       console.error(err);
       setRealError(err.message || '네트워크 에러가 발생했습니다.');

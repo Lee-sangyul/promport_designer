@@ -5,7 +5,7 @@ import {
   Moon, Sun, Flame, MessageSquare, Check, CheckCircle2, AlertTriangle, AlertOctagon,
   XCircle, Plus, Search, Share2, Printer, Maximize2, Minimize2, ChevronRight, ChevronLeft,
   History, Users, Target, Clock, ArrowRightLeft, Sliders, PlayCircle, Award, Trash2, X,
-  Loader2, AlertCircle
+  Loader2, AlertCircle, Key
 } from 'lucide-react';
 
 import { PromptData, SavedPrompt, AppMode, ImprovementLog as LogItem } from './types';
@@ -14,6 +14,7 @@ import {
   analyzeSafety, analyzePrivacy, calculateStats, calculateQualityScore,
   generatePromptString, detectConflicts
 } from './utils/safety';
+import { polishPrompt, getCustomApiKey, setCustomApiKey } from './utils/geminiClient';
 
 import HelpManual from './components/HelpManual';
 import SavedPrompts from './components/SavedPrompts';
@@ -69,6 +70,11 @@ export default function App() {
   const [isPolishing, setIsPolishing] = useState(false);
   const [polishError, setPolishError] = useState('');
 
+  // Custom API Key Modal States
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState('');
+  const [hasCustomApiKey, setHasCustomApiKey] = useState(false);
+
   // Custom tagging text inputs
   const [newInclude, setNewInclude] = useState('');
   const [newExclude, setNewExclude] = useState('');
@@ -85,6 +91,9 @@ export default function App() {
     if (!savedTheme) {
       localStorage.setItem('prompt_designer_theme', 'light');
     }
+
+    // 1.5 Initialize custom API key status
+    setHasCustomApiKey(!!getCustomApiKey());
 
     // 2. Recovery Alert Trigger
     const autosaved = localStorage.getItem('prompt_designer_autosave');
@@ -273,25 +282,13 @@ export default function App() {
     setPolishError('');
     try {
       const rawCompiled = generatePromptString(promptData);
-      const res = await fetch('/api/gemini/polish', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: rawCompiled }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'AI 다듬기에 실패했습니다.');
-      }
-      if (data.text) {
-        const updated = {
-          ...promptData,
-          polishedText: data.text,
-        };
-        updatePromptState(updated);
-        setUsePolished(true);
-      }
+      const text = await polishPrompt(rawCompiled);
+      const updated = {
+        ...promptData,
+        polishedText: text,
+      };
+      updatePromptState(updated);
+      setUsePolished(true);
     } catch (err: any) {
       console.error(err);
       setPolishError(err.message || '네트워크 오류가 발생했습니다.');
@@ -470,10 +467,26 @@ export default function App() {
 
           <button
             onClick={toggleTheme}
-            className="p-2 rounded border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all"
+            className="p-2 rounded border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all cursor-pointer"
             title={theme === 'light' ? '다크 모드로 변경' : '라이트 모드로 변경'}
           >
             {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
+
+          <button
+            onClick={() => {
+              setTempApiKey(getCustomApiKey() || '');
+              setShowApiKeyModal(true);
+            }}
+            className={`text-[11px] font-bold px-3 py-2 rounded border transition-all flex items-center gap-1.5 cursor-pointer ${
+              hasCustomApiKey 
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40' 
+                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400'
+            }`}
+            title="Gemini API Key 설정 (GitHub Pages 등 정적 호스팅용)"
+          >
+            <Key size={13} />
+            {hasCustomApiKey ? 'API Key 설정됨' : 'API Key 설정'}
           </button>
 
           <button
@@ -1673,6 +1686,77 @@ export default function App() {
           promptData={promptData}
           onClose={() => setShowPresentation(false)}
         />
+      )}
+
+      {/* --- API KEY CONFIGURATION MODAL --- */}
+      {showApiKeyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-150 dark:border-slate-800 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800/80">
+              <div className="flex items-center gap-2">
+                <Key className="text-emerald-500" size={18} />
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">Gemini API Key 설정</h3>
+              </div>
+              <button
+                onClick={() => setShowApiKeyModal(false)}
+                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-all cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-3.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                GitHub Pages와 같은 정적 호스팅 사이트나 외부 환경에 배포했을 때도 프롬프트 다듬기 및 실제 AI 구동 테스트를 원활히 사용하기 위해, 본인의 개인 <strong>Gemini API Key</strong>를 브라우저 로컬 저장소에 안전하게 등록할 수 있습니다.
+              </p>
+              
+              <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 rounded-2xl text-[11px] text-blue-600 dark:text-blue-400 leading-relaxed">
+                <strong>🔒 보안 안내:</strong> 입력하신 API Key는 외부 서버나 제작자에게 절대로 전송되지 않으며, 오직 본인 브라우저의 안전한 영역(localStorage)에만 저장되어 Gemini에 직접 요청을 전달할 때만 사용됩니다.
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Gemini API Key</label>
+                <input
+                  type="password"
+                  value={tempApiKey}
+                  onChange={(e) => setTempApiKey(e.target.value)}
+                  placeholder="AI_Sy... 또는 API Key 입력"
+                  className="w-full p-3 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800 rounded-xl text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400 font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setCustomApiKey('');
+                  setTempApiKey('');
+                  setHasCustomApiKey(false);
+                  setShowApiKeyModal(false);
+                  alert('API Key가 성공적으로 제거되었습니다. 이제 기본 서버 API를 시도합니다.');
+                }}
+                className="flex-1 py-2.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 rounded-xl transition-all border border-slate-200 dark:border-slate-700 cursor-pointer"
+              >
+                삭제하기
+              </button>
+              <button
+                onClick={() => {
+                  if (!tempApiKey.trim()) {
+                    alert('API Key를 입력해 주세요.');
+                    return;
+                  }
+                  setCustomApiKey(tempApiKey);
+                  setHasCustomApiKey(true);
+                  setShowApiKeyModal(false);
+                  alert('API Key가 성공적으로 저장되었습니다! 이제 정적 호스팅 환경에서도 안전하게 AI 기능을 사용할 수 있습니다.');
+                }}
+                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white rounded-xl transition-all shadow-sm cursor-pointer"
+              >
+                저장하기
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Footer credits */}
