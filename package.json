@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "predeploy": "vite build --base=/프롬프트-디자이너-프로젝트-이름/",
+    "predeploy": "vite build --base=/promport_designer/",
     "deploy": "gh-pages -d dist",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
