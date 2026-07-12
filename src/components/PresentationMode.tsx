@@ -31,8 +31,8 @@ export default function PresentationMode({ onClose }: PresentationModeProps) {
 
   const slides = [
     {
-      title: '프롬프트 엔지니어링 스튜디오 소개',
-      subtitle: 'Introduction to Prompt Engineering Studio',
+      title: '프롬프트 디자이너 소개',
+      subtitle: 'Introduction to Prompt Designer',
       content: (
         <div className="text-center space-y-6">
           <div className="mx-auto w-20 h-20 bg-blue-500/10 dark:bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4 shadow-inner">
@@ -307,7 +307,7 @@ export default function PresentationMode({ onClose }: PresentationModeProps) {
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">프로그램 가이드 슬라이드</h2>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 hidden sm:block">프롬프트 엔지니어링 스튜디오가 어떤 도구인지 핵심 기능을 설명합니다.</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 hidden sm:block">프롬프트 디자이너가 어떤 도구인지 핵심 기능을 설명합니다.</p>
           </div>
         </div>
 
@@ -408,7 +408,7 @@ export default function PresentationMode({ onClose }: PresentationModeProps) {
 
       {/* Footer */}
       <div className="py-3 bg-white dark:bg-slate-900 border-t border-slate-150 dark:border-slate-800 md:mx-4 rounded-b-3xl text-center text-[10px] text-slate-400 font-medium">
-        © Prompt Engineering Studio. 스페이스바 또는 방향키를 사용하여 다음 슬라이드로 이동할 수 있습니다.
+        © Prompt Designer. 스페이스바 또는 방향키를 사용하여 다음 슬라이드로 이동할 수 있습니다.
       </div>
     </div>
   );
