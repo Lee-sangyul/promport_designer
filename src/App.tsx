@@ -332,6 +332,53 @@ export default function App() {
     }
   };
 
+  const handleLocalAuditPrompt = () => {
+    setIsAuditing(true);
+    setAuditError('');
+    setAiAuditResult(null);
+    try {
+      const safetyRes = analyzeSafety(compiledPrompt, '', '');
+      const privacyRes = analyzePrivacy(compiledPrompt);
+      
+      const isSafe = safetyRes.status !== 'blocked' && safetyRes.status !== 'warning' && !privacyRes.detected;
+      const score = Math.min(100, Math.max(20, calculateQualityScore(promptData)));
+      
+      let safetyLabel: '통과' | '주의' | '차단' = '통과';
+      if (!isSafe) {
+        safetyLabel = '차단';
+      } else if (safetyRes.status === 'caution') {
+        safetyLabel = '주의';
+      }
+
+      let commentary = `⚠️ [서버 과부하 비상 우회] Google Gemini AI 서버 통신 장애(503/429 등)가 발생하여, 차선책으로 시스템 내장형 고정밀 룰 기반 로컬 프롬프트 진단 엔진을 가동하였습니다.\n\n`;
+      if (isSafe) {
+        commentary += `진단 결과, 조립된 프롬프트 내용에서 악성 탈옥(Jailbreak)이나 개인정보 노출, 부정행위 등 심각한 위험 인자가 감지되지 않았습니다. 현재로서는 아주 안전한 배치 상태로 판명되어 '통과' 도장이 임시 수여되었습니다. 다음 수령 단계로 가셔도 안전합니다.`;
+      } else {
+        commentary += `진단 결과, 프롬프트 내에서 우려되거나 민감한 구절이 포착되었습니다:\n`;
+        if (safetyRes.detections.length > 0) {
+          commentary += `- 감지된 위험: ${safetyRes.detections.map(d => d.category + ' (' + d.keyword + ')').join(', ')}\n`;
+        }
+        if (privacyRes.detections.length > 0) {
+          commentary += `- 개인정보 패턴 감지: ${privacyRes.detections.map(d => d.description).join(', ')}\n`;
+        }
+        commentary += `\n위험 인자가 포함되어 있으므로, 지시 내용을 안전한 방향으로 수정한 뒤 다시 심사를 진행해 주십시오.`;
+      }
+
+      setAiAuditResult({
+        isSafe,
+        score,
+        safetyLabel,
+        commentary
+      });
+      setAuditedPromptText(compiledPrompt);
+    } catch (err: any) {
+      console.error(err);
+      setAuditError('로컬 백업 엔진 구동 중 예기치 못한 오류가 발생했습니다.');
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
   // Log Improvement entries
   const handleSaveImprovementLog = (log: LogItem, pre: number, post: number) => {
     handleUpdateField('improvementLog', log);
@@ -1291,15 +1338,29 @@ export default function App() {
                         ) : auditError ? (
                           <div className="p-4 bg-red-950/40 border border-red-900/50 rounded-2xl text-xs text-red-400 flex items-start gap-3">
                             <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                            <div>
-                              <span className="font-bold">심사 실행 에러 발생</span>
-                              <p className="mt-1 text-slate-450">{auditError}</p>
-                              <button 
-                                onClick={handleAuditPrompt}
-                                className="mt-2.5 bg-blue-650 hover:bg-blue-750 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer"
-                              >
-                                다시 시도하기
-                              </button>
+                            <div className="space-y-3 w-full">
+                              <div>
+                                <span className="font-bold block text-sm text-red-300">심사 실행 에러 발생 (Gemini API 일시적 오류)</span>
+                                <p className="mt-1 text-slate-300 leading-normal">{auditError}</p>
+                                <p className="mt-1.5 text-[11px] text-amber-400 leading-normal">
+                                  💡 Google Gemini 서버의 동시 사용자 급증(503/429 등)으로 인해 일시적으로 연결에 실패했을 수 있습니다. 본인의 Gemini API 키를 설정하거나, 아래 '내장형 로컬 검진 엔진'을 구동하여 즉시 우회하여 필수 승인을 획득하실 수 있습니다.
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                <button 
+                                  onClick={handleAuditPrompt}
+                                  className="bg-blue-650 hover:bg-blue-750 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer"
+                                >
+                                  Gemini API 다시 시도하기
+                                </button>
+                                <button 
+                                  onClick={handleLocalAuditPrompt}
+                                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1"
+                                >
+                                  <ShieldCheck size={13} />
+                                  로컬 진단 엔진으로 즉시 대체 승인받기 (추천)
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ) : aiAuditResult ? (
