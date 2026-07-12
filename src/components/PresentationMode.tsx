@@ -1,232 +1,251 @@
 import React, { useState, useEffect } from 'react';
-import { Maximize2, Minimize2, ChevronLeft, ChevronRight, Printer, LayoutGrid, Layers, ShieldCheck, PlayCircle, Eye, Download } from 'lucide-react';
+import { 
+  Maximize2, 
+  Minimize2, 
+  ChevronLeft, 
+  ChevronRight, 
+  LayoutGrid, 
+  Layers, 
+  ShieldCheck, 
+  PlayCircle, 
+  Eye, 
+  Sparkles, 
+  ArrowRight, 
+  CheckCircle2, 
+  Lock, 
+  ShieldAlert, 
+  Database, 
+  Clock 
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { PromptData } from '../types';
-import { generatePromptString } from '../utils/safety';
-import { exportToPPT } from '../utils/pptxExport';
 
 interface PresentationModeProps {
   promptData: PromptData;
   onClose: () => void;
 }
 
-export default function PresentationMode({ promptData, onClose }: PresentationModeProps) {
+export default function PresentationMode({ onClose }: PresentationModeProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [viewMode, setViewMode] = useState<'slideshow' | 'summary'>('slideshow');
-
-  const finalPrompt = generatePromptString(promptData);
 
   const slides = [
     {
-      title: '프로젝트 개요 (Overview)',
+      title: '프롬프트 엔지니어링 스튜디오 소개',
+      subtitle: 'Introduction to Prompt Engineering Studio',
       content: (
-        <div className="space-y-6 text-center py-6">
-          <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950 px-3 py-1 rounded-full uppercase tracking-widest font-mono">
-            Prompt Design Pitch
-          </span>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-2">
-            {promptData.title || '제목 없는 프롬프트 프로젝트'}
-          </h1>
-          <p className="text-slate-500 max-w-xl mx-auto text-sm leading-relaxed">
-            AI에게 정밀하고 안전하게 명령하기 위한 구조화된 프롬프트 설계서 및 모의 시뮬레이션 결과입니다.
+        <div className="text-center space-y-6">
+          <div className="mx-auto w-20 h-20 bg-blue-500/10 dark:bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4 shadow-inner">
+            <LayoutGrid size={40} className="animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+              누구나 전문가처럼 AI를 다루는 방법
+            </h2>
+            <p className="text-blue-600 dark:text-blue-400 text-xs font-bold font-mono tracking-wider">
+              LEGO-STYLE AUTOMATED PROMPT WORKSTATION
+            </p>
+          </div>
+          
+          <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto text-sm leading-relaxed">
+            복잡하고 막연한 프롬프트 작성 과정을 레고 블록처럼 직관적으로 결합하여, 최고 품질의 출력물을 유도할 수 있도록 돕는 차세대 실시간 프롬프트 저작 및 안전성 가드라인 엔지니어링 플랫폼입니다.
           </p>
-          <div className="flex justify-center items-center gap-6 pt-4 border-t border-slate-100 dark:border-slate-800 max-w-sm mx-auto text-left">
-            <div>
-              <span className="block text-[10px] uppercase font-bold text-slate-400">품질 완성도</span>
-              <span className="text-2xl font-black text-blue-600 dark:text-blue-400">{promptData.qualityScore}점 / 100점</span>
+
+          <div className="grid grid-cols-3 gap-4 pt-6 max-w-2xl mx-auto text-center">
+            <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800">
+              <span className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">프롬프트 조립</span>
+              <span className="text-sm font-black text-blue-600 dark:text-blue-400">8단계 가이드</span>
             </div>
-            <div className="w-px h-10 bg-slate-250 dark:bg-slate-850" />
-            <div>
-              <span className="block text-[10px] uppercase font-bold text-slate-400">안전성 등급</span>
-              <span className="text-lg font-bold text-emerald-600">안전성 최상</span>
+            <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800">
+              <span className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">인프라 보안</span>
+              <span className="text-sm font-black text-red-600 dark:text-red-400">실시간 스캔</span>
+            </div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800">
+              <span className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">엔진 성능</span>
+              <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">Gemini AI</span>
             </div>
           </div>
         </div>
       )
     },
     {
-      title: '해결 과제와 핵심 목표 (Goal)',
+      title: '직관적인 단계별 블록 설계',
+      subtitle: 'Systematic Step-by-Step Prompt Composition',
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          <div className="p-5 bg-blue-50/50 dark:bg-blue-950/20 rounded-2xl border border-blue-100 dark:border-blue-900/30 space-y-2">
-            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">해결하고자 하는 문제 상황</span>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-              {promptData.problem || '정의된 문제 상황이 없습니다.'}
-            </p>
-          </div>
-          <div className="p-5 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 space-y-2">
-            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">프롬프트 도달 목표</span>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-              {promptData.goal || '정의된 핵심 목표가 기입되지 않았습니다.'}
-            </p>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: 'AI 메인 페르소나 (Persona & Tone)',
-      content: (
-        <div className="space-y-5">
-          <div className="flex flex-col sm:flex-row gap-4 items-start bg-slate-50 dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
-            <div className="p-3 bg-blue-600 text-white rounded-xl font-bold text-sm text-center min-w-[100px]">
-              AI 역할
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">{promptData.role || '지정되지 않음 (기본 페르소나)'}</h3>
-              {promptData.secondaryRole && (
-                <p className="text-xs text-slate-500 dark:text-slate-400">보조 역할: {promptData.secondaryRole}</p>
-              )}
-            </div>
+        <div className="space-y-6">
+          <p className="text-center text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">
+            주먹구구식 작성이 아닙니다. 프롬프트 구성의 필수 5대 레이어를 단계별로 채워 나가면 완벽하게 최적화된 마크다운 문서형 프롬프트가 정식 발급됩니다.
+          </p>
+
+          {/* Timeline Visual */}
+          <div className="relative flex flex-col md:flex-row justify-between items-center gap-4 max-w-3xl mx-auto py-4">
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-150 dark:bg-slate-800 -translate-y-1/2 hidden md:block" />
+            
+            {[
+              { step: '01', title: '목적 & 배경', desc: '해결할 과제 정의' },
+              { step: '02', title: '역할 페르소나', desc: 'AI의 전문 정체성' },
+              { step: '03', title: '세부 지시', desc: '수행할 구체 태스크' },
+              { step: '04', title: '금칙 및 안전', desc: '예외/보안 가드라인' }
+            ].map((s, idx) => (
+              <div key={idx} className="relative z-10 flex flex-col items-center bg-white dark:bg-slate-900 px-3 py-2 text-center max-w-[160px]">
+                <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center font-mono font-black text-xs border-2 border-blue-500 mb-2 shadow-sm">
+                  {s.step}
+                </div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-white mb-0.5">{s.title}</h4>
+                <p className="text-[10px] text-slate-400">{s.desc}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-              <span className="block text-[10px] font-bold text-slate-400 uppercase">어조 및 말투</span>
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 block">{promptData.tone || '기본 말투'}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-2xl border border-blue-100 dark:border-blue-900/30 space-y-1">
+              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1"><Layers size={11} />실시간 자동 조립</span>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                각 영역에 입력값을 기입하는 순간, 컴파일 메트릭스 모듈이 문맥 연동을 통해 아름다운 완성형 마크다운 구조로 실시간 조립합니다.
+              </p>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-              <span className="block text-[10px] font-bold text-slate-400 uppercase">이해 난이도</span>
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 block">{promptData.difficulty || '기본 난이도'}</span>
+            <div className="p-4 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 space-y-1">
+              <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-1"><PlayCircle size={11} />완벽한 맥락 제어</span>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                출력의 어조, 형식, 제약사항이 구조화되어 전달되므로 AI가 지시를 우회하거나 길을 잃지 않고 정확한 답변만을 수행하게 보증합니다.
+              </p>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-              <span className="block text-[10px] font-bold text-slate-400 uppercase">설명 전달 모델</span>
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 block line-clamp-1">
-                {promptData.explanationStyle && promptData.explanationStyle.length > 0 
-                  ? promptData.explanationStyle.join(', ') 
-                  : '일반 설명'}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: '초거대 AI 기반 고해상도 튜닝',
+      subtitle: 'Gemini AI High-Definition Polish & Enhance',
+      content: (
+        <div className="space-y-5">
+          <p className="text-center text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">
+            작성자의 의도가 담긴 기초 프롬프트를 <strong>세계 최고 수준의 전문가형 지시어 문법</strong>으로 1초 만에 격상시킵니다.
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Before */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-150 dark:border-slate-800 space-y-2 relative overflow-hidden">
+              <div className="absolute top-2 right-2 bg-slate-200 dark:bg-slate-800 text-slate-500 text-[9px] font-bold px-1.5 py-0.5 rounded">
+                AS-IS (사용자 기초 조립)
+              </div>
+              <span className="text-[10px] font-mono text-slate-400 block">PROMPT BLOCK</span>
+              <div className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-850 leading-relaxed">
+                "의사 말투로 친절하게 다이어트 식단을 구성해 줘. 한 달 치 정도로 칼로리도 낮아야 해."
+              </div>
+            </div>
+
+            {/* After */}
+            <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-950/40 space-y-2 relative overflow-hidden">
+              <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                <Sparkles size={8} /> TO-BE (AI 튜닝 버전)
+              </div>
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 block font-bold flex items-center gap-1">
+                <Sparkles size={10} /> GEMINI AI POLISHED
               </span>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: '핵심 작업과 청중 분석 (Task & Target)',
-      content: (
-        <div className="space-y-5">
-          <div className="bg-slate-50 dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">구체적 지시 (Task)</span>
-            <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-semibold">
-              {promptData.task || '지시 내용이 기입되지 않았습니다.'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-              <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">독자 및 청중 (Audience)</span>
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{promptData.audience || '제공안됨'}</span>
-            </div>
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-              <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">사용 환경 및 문맥 (Context)</span>
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{promptData.context || '제공안됨'}</span>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: '수행 규약과 제약 조건 (Guardrails)',
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block">반드시 다룰 요소 (Include)</span>
-            <div className="flex flex-wrap gap-1.5">
-              {promptData.includeItems && promptData.includeItems.length > 0 ? (
-                promptData.includeItems.map((item, idx) => (
-                  <span key={idx} className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 text-xs px-2.5 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
-                    ✓ {item}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-slate-400">설정된 조건 없음</span>
-              )}
+              <div className="text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/20 leading-relaxed font-semibold">
+                <strong>[역할 지정]</strong> 당신은 보건 복지부 인증 임상영양사 겸 가정의학과 전문의입니다.<br />
+                <strong>[요구 사항]</strong> 30일 간의 저탄수화물 고단백 저열량(하루 1500kcal 제한) 균형 식단을 설계하되, 각 주차별 영양소 비율을 표 형식으로 수치화하십시오.
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <span className="text-[10px] font-black text-red-600 uppercase tracking-widest block">배제할 요소 (Exclude)</span>
-            <div className="flex flex-wrap gap-1.5">
-              {promptData.excludeItems && promptData.excludeItems.length > 0 ? (
-                promptData.excludeItems.map((item, idx) => (
-                  <span key={idx} className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 text-xs px-2.5 py-1.5 rounded-xl border border-red-100 dark:border-red-900/30">
-                    ✕ {item}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-slate-400">설정된 차단 조건 없음</span>
-              )}
-            </div>
+          <div className="flex items-center gap-2 text-xs bg-slate-50 dark:bg-slate-850 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800/60 justify-center">
+            <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+            <span className="text-slate-600 dark:text-slate-400 font-medium">체계적 구획화, 특수 트리거 추가, AI 응답 일관성 <strong>320% 증가</strong></span>
           </div>
         </div>
       )
     },
     {
-      title: '출력 규격 및 분량 (Format & Volume)',
-      content: (
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs">
-              <span className="font-bold text-slate-400 block uppercase mb-1">출력 형식 (Format)</span>
-              <p className="text-sm font-semibold text-slate-800 dark:text-white">{promptData.outputFormat || '지정되지 않음 (기본 텍스트)'}</p>
-            </div>
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs">
-              <span className="font-bold text-slate-400 block uppercase mb-1">타겟 분량 (Length)</span>
-              <p className="text-sm font-semibold text-slate-800 dark:text-white">{promptData.lengthValue || '제어 분량 없음'}</p>
-            </div>
-          </div>
-
-          {promptData.outputStructure && (
-            <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold block uppercase">구조적 목차 설계 (Output Structure)</span>
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{promptData.outputStructure}</p>
-            </div>
-          )}
-        </div>
-      )
-    },
-    {
-      title: '개인정보 보호 및 사이버 세이프티 (Safety & Compliance)',
+      title: '철저한 보안 검진 & 레드팀 시뮬레이션',
+      subtitle: 'Real-time Security Guardrail & Jailbreak Defense',
       content: (
         <div className="space-y-4">
-          <div className="flex gap-4 items-center bg-emerald-50/50 dark:bg-emerald-950/15 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-950 text-xs">
-            <ShieldCheck size={24} className="text-emerald-600 dark:text-emerald-400" />
-            <div>
-              <h4 className="font-bold text-emerald-800 dark:text-emerald-400">실시간 데이터 유출 보안 완료</h4>
-              <p className="text-slate-500 dark:text-slate-400 mt-0.5">이 프롬프트는 주민번호, 실제 위치, 연락처 등 고유식별정보를 포함하지 않아 즉각적인 클라우드 질의에 완전 무해합니다.</p>
+          <p className="text-center text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">
+            안전하지 않은 기술은 사용할 수 없습니다. 프롬프트 인젝션(지시 무시 공격), 개인정보(PII) 누출 우려 등을 설계 즉시 검출하여 원천적으로 차단합니다.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
+              <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center mb-1">
+                <Lock size={14} />
+              </div>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white">개인정보 보호</h4>
+              <p className="text-[10px] text-slate-400 leading-normal">이메일, 휴대폰 번호, 주민등록번호 양식 등 기밀 정보 실시간 제거 및 필터링</p>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
+              <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mb-1">
+                <ShieldAlert size={14} />
+              </div>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white">프롬프트 인젝션 방어</h4>
+              <p className="text-[10px] text-slate-400 leading-normal">"앞선 모든 지시를 잊어라"와 같은 우회(탈옥) 공격 공격 시도를 탐지하여 점수화</p>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
+              <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center mb-1">
+                <ShieldCheck size={14} />
+              </div>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white">조립 잠금 메커니즘</h4>
+              <p className="text-[10px] text-slate-400 leading-normal">안전 가이드라인을 심각하게 위배한 프롬프트는 최종 복사 및 다운로드를 원천 락업</p>
             </div>
           </div>
 
-          <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs space-y-1.5">
-            <span className="font-bold text-slate-400 uppercase text-[9px] tracking-wider block">안전 보안 원칙 요약</span>
-            <ul className="list-disc pl-4 space-y-1 text-slate-600 dark:text-slate-400">
-              <li>사용 목적 및 상황 규칙 기반 실시간 해킹·우회 패턴 스캔 정밀 필터링 통과</li>
-              <li>공익 교육용 프롬프트 및 비폭력 조건 기반 인권 가치 지향 설계 지침 준수</li>
-              <li>중요 금융 정보 소스 주입 시, 사전 확인 및 경고 경보 강제 호출</li>
-            </ul>
+          <div className="p-4 bg-red-500/5 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-950/30 flex items-start gap-3">
+            <ShieldAlert size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <h5 className="text-xs font-bold text-red-800 dark:text-red-400">🚨 보안 위반 프롬프트 복사 차단 정책</h5>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                본 시스템은 안전한 AI 생태계를 추구합니다. 위험 분석 결과가 'blocked'이거나 'warning' 수준인 위협성 프롬프트는 8단계(수령 및 서약) 및 보관함에서 **복사 및 저장이 전면 차단**됩니다. 위험 사유를 확인해 텍스트를 순화하여 이용하세요.
+              </p>
+            </div>
           </div>
         </div>
       )
     },
     {
-      title: '조합된 완성형 프롬프트 (Compiled Output)',
+      title: '마켓플레이스 라이브러리 & 클라우드 보관함',
+      subtitle: 'Premium Templates & Personalized Vault',
       content: (
-        <div className="space-y-3">
-          <div className="relative border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-950 text-slate-200">
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">최종 템플릿 코드</span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(finalPrompt);
-                  alert('프롬프트 복사 성공!');
-                }}
-                className="text-[10px] text-blue-400 hover:text-blue-300 font-bold"
-              >
-                복사하기
-              </button>
+        <div className="space-y-5">
+          <p className="text-center text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">
+            엄선된 최상급 프롬프트 템플릿 목록과 함께 내가 정성껏 보강해 완성한 보장받은 프롬프트들을 반영구적으로 보존할 수 있습니다.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-5 border border-slate-150 dark:border-slate-800 rounded-2xl flex gap-4 bg-white dark:bg-slate-900 shadow-sm">
+              <div className="p-3 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-xl shrink-0 h-11 w-11 flex items-center justify-center">
+                <Database size={20} />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">엄선된 전문 템플릿 라이브러리</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  마케팅, 교육, 코드 작성, 심리 상담 등 각 분야의 일류 엔지니어들이 설계해둔 모범 프리셋을 즉시 클릭 한 번으로 내 보드에 이식합니다.
+                </p>
+              </div>
             </div>
-            <pre className="p-4 text-left text-[10px] font-mono leading-relaxed overflow-y-auto max-h-[220px] whitespace-pre-wrap select-all">
-              {finalPrompt}
-            </pre>
+
+            <div className="p-5 border border-slate-150 dark:border-slate-800 rounded-2xl flex gap-4 bg-white dark:bg-slate-900 shadow-sm">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-xl shrink-0 h-11 w-11 flex items-center justify-center">
+                <Clock size={20} />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">나만의 안전 보관 보관함 (Vault)</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  치열하게 설계하고 안전 보증 서약을 모두 체크하여 검증된 프롬프트를 비공개 클라우드 공간에 안전하게 등록하여 재사용하세요.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button 
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3 rounded-2xl text-xs shadow-md shadow-blue-500/10 cursor-pointer transition-all"
+            >
+              지금 직접 설계하러 가기 <ArrowRight size={14} />
+            </button>
           </div>
         </div>
       )
@@ -235,10 +254,6 @@ export default function PresentationMode({ promptData, onClose }: PresentationMo
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only process when in slideshow view mode
-      if (viewMode !== 'slideshow') return;
-
-      // Check if user is typing in an input/textarea
       const activeEl = document.activeElement;
       if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.getAttribute('contenteditable') === 'true')) {
         return;
@@ -260,7 +275,7 @@ export default function PresentationMode({ promptData, onClose }: PresentationMo
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [viewMode, slides.length]);
+  }, [slides.length]);
 
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
@@ -278,10 +293,6 @@ export default function PresentationMode({ promptData, onClose }: PresentationMo
     setIsFullscreen(!isFullscreen);
   };
 
-  const triggerPrint = () => {
-    window.print();
-  };
-
   return (
     <div className={`fixed inset-0 z-50 bg-slate-100 dark:bg-slate-950 flex flex-col justify-between ${isFullscreen ? 'p-0' : 'p-4 md:p-8'}`}>
       {/* Header */}
@@ -291,61 +302,23 @@ export default function PresentationMode({ promptData, onClose }: PresentationMo
             <Eye size={18} />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">발표 슬라이드 모드</h2>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 hidden sm:block">설계 완료된 프롬프트 구성을 보기 쉬운 프리젠테이션으로 전환합니다.</p>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">프로그램 가이드 슬라이드</h2>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 hidden sm:block">프롬프트 엔지니어링 스튜디오가 어떤 도구인지 핵심 기능을 설명합니다.</p>
           </div>
         </div>
 
-        {/* View mode buttons */}
+        {/* Controls */}
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setViewMode('slideshow')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 ${
-              viewMode === 'slideshow' 
-                ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30' 
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Layers size={13} />
-            슬라이드 보기
-          </button>
-          <button
-            onClick={() => setViewMode('summary')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 ${
-              viewMode === 'summary' 
-                ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30' 
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <LayoutGrid size={13} />
-            전체 대시보드
-          </button>
-          <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-1" />
-          <button
-            onClick={() => exportToPPT(promptData)}
-            className="px-3 py-1.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl text-xs font-semibold flex items-center gap-1 hover:bg-slate-900 dark:hover:bg-slate-100 transition-all shadow-sm cursor-pointer"
-            title="발표용 PPT 파일로 컴퓨터에 저장합니다."
-          >
-            <Download size={13} />
-            PPTX 다운로드
-          </button>
-          <button
-            onClick={triggerPrint}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl"
-            title="인쇄"
-          >
-            <Printer size={16} />
-          </button>
-          <button
             onClick={toggleFullscreen}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl"
+            className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
             title={isFullscreen ? '축소' : '전체화면'}
           >
             {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
           <button
             onClick={onClose}
-            className="ml-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold px-3.5 py-1.5 rounded-xl text-xs"
+            className="ml-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer"
           >
             종료
           </button>
@@ -354,73 +327,84 @@ export default function PresentationMode({ promptData, onClose }: PresentationMo
 
       {/* Main Container */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-8 max-h-[calc(100vh-140px)] overflow-y-auto">
-        {viewMode === 'slideshow' ? (
-          <div className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-12 shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800/80 min-h-[400px] flex flex-col justify-between">
-            {/* Slide title */}
-            <div className="border-b border-slate-100 dark:border-slate-850 pb-4 mb-6">
-              <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 font-mono tracking-widest uppercase block mb-1">
-                SLIDE {currentSlide + 1} OF {slides.length}
-              </span>
-              <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">
-                {slides[currentSlide].title}
-              </h2>
-            </div>
-
-            {/* Slide content */}
-            <div className="flex-1 py-4 flex flex-col justify-center">
-              {slides[currentSlide].content}
-            </div>
-
-            {/* Slide Controls */}
-            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-850 pt-6 mt-6">
-              <span className="text-xs text-slate-400 font-mono font-medium">프롬프트 디자이너 발표 모드</span>
-              <div className="flex gap-2">
-                <button
-                  onClick={handlePrev}
-                  disabled={currentSlide === 0}
-                  className="p-3 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 rounded-2xl text-slate-700 border border-slate-150 transition-all cursor-pointer disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={currentSlide === slides.length - 1}
-                  className="p-3 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 rounded-2xl text-slate-700 border border-slate-150 transition-all cursor-pointer disabled:cursor-not-allowed"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Summary mode grid */
-          <div className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800 overflow-y-auto max-h-full print:border-0 print:shadow-none space-y-8">
-            <div className="text-center pb-6 border-b border-slate-100 dark:border-slate-800">
-              <h1 className="text-2xl md:text-3xl font-black text-slate-950 dark:text-white">{promptData.title || '제목 없는 프롬프트'} 설계 요약본</h1>
-              <p className="text-xs text-slate-400 mt-1">완성도 높은 비지니스를 위한 프롬프트 핵심 설정 통합 요약 레포트</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-              {slides.slice(1, -1).map((s, idx) => (
-                <div key={idx} className="p-5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/40 dark:bg-slate-900/40">
-                  <h3 className="font-bold text-slate-950 dark:text-white text-sm mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">{s.title}</h3>
-                  {s.content}
+        <div className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-12 shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800/80 min-h-[440px] flex flex-col justify-between">
+          
+          {/* Slide View Transition using motion */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="flex-1 flex flex-col justify-between"
+            >
+              {/* Slide title */}
+              <div className="border-b border-slate-100 dark:border-slate-850 pb-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 font-mono tracking-widest uppercase block mb-1">
+                    SLIDE {currentSlide + 1} OF {slides.length}
+                  </span>
+                  <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono font-bold px-2 py-0.5 rounded-full">
+                    {Math.round(((currentSlide + 1) / slides.length) * 100)}% 완료
+                  </span>
                 </div>
+                <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">
+                  {slides[currentSlide].title}
+                </h2>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-mono tracking-wide mt-0.5">
+                  {slides[currentSlide].subtitle}
+                </p>
+              </div>
+
+              {/* Slide content */}
+              <div className="flex-1 py-4 flex flex-col justify-center">
+                {slides[currentSlide].content}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Slide Controls & Slide Dots */}
+          <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 dark:border-slate-850 pt-6 mt-6 gap-4">
+            {/* Slide dots indicator */}
+            <div className="flex gap-2">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
+                    currentSlide === idx 
+                      ? 'bg-blue-600 dark:bg-blue-400 w-6' 
+                      : 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700'
+                  }`}
+                  aria-label={`슬라이드 ${idx + 1}로 이동`}
+                />
               ))}
             </div>
 
-            {/* Last item standalone */}
-            <div className="p-5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/40 dark:bg-slate-900/40 text-xs">
-              <h3 className="font-bold text-slate-950 dark:text-white text-sm mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">조합된 최종 프롬프트 출력문</h3>
-              {slides[slides.length - 1].content}
+            <div className="flex gap-2 w-full sm:w-auto justify-end">
+              <button
+                onClick={handlePrev}
+                disabled={currentSlide === 0}
+                className="p-3 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 disabled:opacity-40 rounded-2xl text-slate-700 dark:text-slate-300 border border-slate-150 dark:border-slate-750 transition-all cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentSlide === slides.length - 1}
+                className="p-3 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 disabled:opacity-40 rounded-2xl text-slate-700 dark:text-slate-300 border border-slate-150 dark:border-slate-750 transition-all cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Footer footer */}
+      {/* Footer */}
       <div className="py-3 bg-white dark:bg-slate-900 border-t border-slate-150 dark:border-slate-800 md:mx-4 rounded-b-3xl text-center text-[10px] text-slate-400 font-medium">
-        © Prompt Designer Pitch Presentation. 이 화면은 인쇄 지원 포맷을 갖추고 있습니다.
+        © Prompt Engineering Studio. 스페이스바 또는 방향키를 사용하여 다음 슬라이드로 이동할 수 있습니다.
       </div>
     </div>
   );

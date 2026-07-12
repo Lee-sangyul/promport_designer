@@ -265,6 +265,10 @@ export default function App() {
 
   // AI Polish Execution Handler
   const handlePolishPrompt = async () => {
+    if (isDangerous) {
+      alert('⚠️ 보안 및 안전 가드라인을 위배하는 위험성 프롬프트는 AI 다듬기 기능을 이용할 수 없습니다. 7단계(보안 검진)에서 위험 키워드를 수정해 주세요.');
+      return;
+    }
     setIsPolishing(true);
     setPolishError('');
     try {
@@ -348,7 +352,11 @@ export default function App() {
   // --- COMPILER & DIAGNOSTIC VALUES ---
   const rawCompiledPrompt = generatePromptString(promptData);
   const compiledPrompt = (usePolished && promptData.polishedText) ? promptData.polishedText : rawCompiledPrompt;
-  const stats = calculateStats(compiledPrompt);
+  const isDangerous = promptData.safetyResult?.status === 'blocked' || promptData.safetyResult?.status === 'warning';
+  const displayCompiledPrompt = isDangerous
+    ? `⚠️ [안전 가드라인 위배 - 복사 및 다운로드 제한]\n\n이 프롬프트에는 해킹, 개인정보 침해, 부정행위 또는 시스템 우회(탈옥) 등 사이버 안전 규정을 위배할 가능성이 높은 위험 요인이 포함되어 있어 최종 조립이 잠금 처리되었습니다.\n\n[감지된 위험 유형]: ${promptData.safetyResult?.detections.map(d => d.category).join(', ') || '없음'}\n[위험 키워드]: ${promptData.safetyResult?.detections.map(d => d.keyword).join(', ') || '없음'}\n\n7단계(보안 검진)로 돌아가 위험 요소를 정당하고 유익한 질의 목적의 정상적 텍스트로 수정한 뒤 진행하세요.`
+    : compiledPrompt;
+  const stats = calculateStats(displayCompiledPrompt);
   const activeConflicts = detectConflicts(promptData);
 
   const stepsList = [
@@ -386,6 +394,10 @@ export default function App() {
   const activePreset = getSelectedPurposePreset();
 
   const handleCopyPrompt = () => {
+    if (isDangerous) {
+      alert('⚠️ 사이버 안전 가드라인 위배 및 위험 키워드가 감지되어 프롬프트 복사가 차단되었습니다. 안전 진단 단계(7단계)에서 위험 유형을 확인하고 내용을 수정해 주세요.');
+      return;
+    }
     navigator.clipboard.writeText(compiledPrompt);
     alert('프롬프트가 복사되었습니다. AI에 입력하기 전 개인정보와 안전성을 한 번 더 확인하세요!');
   };
@@ -462,6 +474,14 @@ export default function App() {
             title={theme === 'light' ? '다크 모드로 변경' : '라이트 모드로 변경'}
           >
             {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
+
+          <button
+            onClick={() => setShowPresentation(true)}
+            className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-950/40 px-3 py-2 rounded border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <PlayCircle size={13} />
+            프로그램 소개 슬라이드
           </button>
 
           <button
@@ -1218,12 +1238,6 @@ export default function App() {
                         <h2 className="text-lg font-black text-slate-950 dark:text-white">최종 프롬프트 설계도 발급 및 수령</h2>
                         <p className="text-xs text-slate-400 mt-0.5">설계가 끝났습니다! 아래 완성본을 검토하고 안전 사용 서약에 동의해 주세요.</p>
                       </div>
-                      <button
-                        onClick={() => setShowPresentation(true)}
-                        className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/40 px-3.5 py-2 rounded-xl transition-all cursor-pointer self-start sm:self-center"
-                      >
-                        📊 발표 슬라이드 보기
-                      </button>
                     </div>
 
                     {/* Quality Summary & Metrics inside Step 8 */}
@@ -1333,7 +1347,7 @@ export default function App() {
                             <span className="text-blue-400 font-mono">{usePolished ? 'AI ENHANCED' : 'AUTOMATIC SYNC'}</span>
                           </div>
                           <pre className="p-4 text-xs font-mono max-h-[300px] overflow-y-auto whitespace-pre-wrap leading-relaxed select-all">
-                            {compiledPrompt || '# 여기에 작성된 프롬프트가 컴파일됩니다.'}
+                            {displayCompiledPrompt || '# 여기에 작성된 프롬프트가 컴파일됩니다.'}
                           </pre>
                         </div>
                       )}
@@ -1456,9 +1470,9 @@ export default function App() {
                     <div className="flex flex-col sm:flex-row gap-3 pt-2">
                       <button
                         onClick={handleCopyPrompt}
-                        disabled={!Object.values(guaranteeChecks).every(Boolean)}
+                        disabled={!Object.values(guaranteeChecks).every(Boolean) || isDangerous}
                         className={`flex-1 py-3.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer ${
-                          Object.values(guaranteeChecks).every(Boolean)
+                          Object.values(guaranteeChecks).every(Boolean) && !isDangerous
                             ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/10'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                         }`}
@@ -1469,9 +1483,9 @@ export default function App() {
 
                       <button
                         onClick={handleSaveToLibrary}
-                        disabled={!Object.values(guaranteeChecks).every(Boolean)}
+                        disabled={!Object.values(guaranteeChecks).every(Boolean) || isDangerous}
                         className={`py-3.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 border shrink-0 cursor-pointer ${
-                          Object.values(guaranteeChecks).every(Boolean)
+                          Object.values(guaranteeChecks).every(Boolean) && !isDangerous
                             ? 'border-blue-200 text-blue-600 bg-white hover:bg-blue-50'
                             : 'border-slate-150 dark:border-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                         }`}
@@ -1481,7 +1495,9 @@ export default function App() {
                       </button>
                     </div>
 
-                    {!Object.values(guaranteeChecks).every(Boolean) && (
+                    {isDangerous ? (
+                      <p className="text-[10px] text-red-600 text-center font-bold">🚨 사이버 안전 규정 위반이 감지되어 복사 및 저장이 차단되었습니다. 7단계(보안 검진)에서 조치 수정을 수행하세요.</p>
+                    ) : !Object.values(guaranteeChecks).every(Boolean) && (
                       <p className="text-[10px] text-amber-600 text-center font-semibold">⚠️ 4가지 보증 서약에 모두 체크해야 프롬프트 다운로드 및 복사 버튼이 활성화됩니다.</p>
                     )}
                   </div>
@@ -1518,12 +1534,6 @@ export default function App() {
                     <Award className="text-blue-600 dark:text-blue-400" size={18} />
                     <span className="font-extrabold text-xs text-slate-900 dark:text-white">실시간 프롬프트 조립기 (Live Preview)</span>
                   </div>
-                  <button
-                    onClick={() => setShowPresentation(true)}
-                    className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1.5 rounded-xl transition-all cursor-pointer"
-                  >
-                    📊 슬라이드 보기
-                  </button>
                 </div>
 
                 {/* Dynamic Rating and Score */}
@@ -1559,8 +1569,25 @@ export default function App() {
                     <span>COMPILE MATRIX</span>
                     <span className="text-blue-400 font-mono animate-pulse">AUTOMATIC SYNC</span>
                   </div>
-                  <pre className="p-4 text-xs font-mono max-h-[340px] overflow-y-auto whitespace-pre-wrap leading-relaxed select-all">
-                    {compiledPrompt || '# 여기에 작성된 프롬프트 조각이 실시간 컴파일됩니다.'}
+                  <pre 
+                    className="p-4 text-xs font-mono max-h-[340px] overflow-y-auto whitespace-pre-wrap leading-relaxed select-none cursor-not-allowed"
+                    style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+                    onCopy={(e) => {
+                      e.preventDefault();
+                      alert('⚠️ 실시간 프롬프트 조합기 내에서는 직접 복사를 할 수 없습니다. 8단계(수령 및 서약)에서 4가지 안전 사용 서약에 동의하시면 완성된 최종 프롬프트를 정식으로 발급(복사)받으실 수 있습니다.');
+                    }}
+                    onCut={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDragStart={(e) => {
+                      e.preventDefault();
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      alert('⚠️ 이 영역은 보안 및 안전 규정에 따라 우클릭 및 복사가 차단되어 있습니다. 최종 완성된 프롬프트는 8단계(수령 및 서약)에서 정식 서약 후 안전하게 복사하십시오.');
+                    }}
+                  >
+                    {displayCompiledPrompt || '# 여기에 작성된 프롬프트 조각이 실시간 컴파일됩니다.'}
                   </pre>
                 </div>
 

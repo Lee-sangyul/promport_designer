@@ -101,8 +101,12 @@ export default function SavedPrompts({ onLoadPrompt, onClose }: SavedPromptsProp
     setEditingId(null);
   };
 
-  const handleCopyPromptText = (promptText: string, e: React.MouseEvent) => {
+  const handleCopyPromptText = (promptText: string, safetyStatus: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (safetyStatus === 'blocked' || safetyStatus === 'warning') {
+      alert('⚠️ 보안 및 안전 가드라인 위배 우려가 있어 보관함에서의 복사가 차단되었습니다. 메인화면으로 불러와 수정하여 안전하게 설계하십시오.');
+      return;
+    }
     navigator.clipboard.writeText(promptText);
     alert('프롬프트가 클립보드에 복사되었습니다. 실제 AI 도구에 입력하기 전에 안전성을 한 번 더 검증해 주세요!');
   };
@@ -286,7 +290,7 @@ export default function SavedPrompts({ onLoadPrompt, onClose }: SavedPromptsProp
 
                 <div className="flex items-center gap-1.5">
                   <button
-                    onClick={(e) => handleCopyPromptText(p.promptData.task, e)}
+                    onClick={(e) => handleCopyPromptText(p.promptData.task, p.safetyStatus, e)}
                     className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded transition-all cursor-pointer"
                     title="프롬프트 복사"
                   >
